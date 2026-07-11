@@ -9,7 +9,7 @@ on:
     branches:
       - main
 
-  workflow_dispatch:
+  workflow_dispatch:  //Manual Workflow run button
 
   schedule:
     - cron: "0 2 * * *"
