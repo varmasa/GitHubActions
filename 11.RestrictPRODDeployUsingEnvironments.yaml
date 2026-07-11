@@ -78,6 +78,7 @@ jobs:
           kubectl get pods
 
 
+Settings -> Environments -> Create ENV Prod with reviewers, prevent self-review, wait-time(After approval to deploy basically buffer time), branches to deploy.
 
 GitHub pauses the job. In the Actions tab, you'll see "Review deployments".
 
