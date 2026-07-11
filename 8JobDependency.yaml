@@ -1,0 +1,54 @@
+//Normally Jobs will run Parllely for seqential execution use needs
+name: Job Dependency
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Building application"
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running tests"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying application"
+
+
+
+//Multiple Dependency
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Build"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Security Scan"
+
+  deploy:
+    needs: [build, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploy"
+
+
+//Always run incase if fails also
+jobs:
+  notify:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Sending notification"
