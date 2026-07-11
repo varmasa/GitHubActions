@@ -32,7 +32,7 @@ jobs:
       - name: Build Application
         run: mvn clean package
 
-      # SONARQUBE
+      # SONARQUBE(SAST - Staticcode Analysis Security Test)
       - name: Sonar Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
