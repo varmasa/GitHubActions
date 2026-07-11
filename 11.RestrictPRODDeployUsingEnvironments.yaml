@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: myapp
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: my-eks-cluster
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ github.sha }}
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      - name: Push Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy to Production
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production                              /pauses job here until it approved
+      url: https://myapp.example.com
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubActionsRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $EKS_CLUSTER
+
+      - name: Update Kubernetes Deployment
+        run: |
+          kubectl set image deployment/myapp \
+            myapp=${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}
+
+      - name: Verify Rollout
+        run: |
+          kubectl rollout status deployment/myapp
+
+      - name: Verify Pods
+        run: |
+          kubectl get pods
+
+
+
+GitHub pauses the job. In the Actions tab, you'll see "Review deployments".
+
+Only an authorized reviewer can approve the deployment. After approval:
+
+The deploy job resumes.
+GitHub provides the environment's secrets.
+The workflow assumes the AWS IAM role via OIDC.
+kubectl connects to your EKS cluster.
+Kubernetes performs a rolling update.
+
+
+Note: This pattern is widely used for production deployments because it combines automated CI with controlled, auditable production releases.
