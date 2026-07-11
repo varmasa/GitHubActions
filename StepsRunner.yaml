@@ -1,0 +1,11 @@
+name: Steps & Runner in GH-Actions
+on: push
+jobs:
+  Getcode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4            //Prebuilt Actions in GITHUB
+
+      - name: Run tests
+        run: npm test                        //To run shell commands
