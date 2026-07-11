@@ -6,3 +6,9 @@ jobs:
     steps:
       - name: sample step
         run: echo "Hello From GitHub-Actions"
+
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Testing job
+        run: echo "Testing Job From GitHub-Actions"
