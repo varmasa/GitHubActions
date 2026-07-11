@@ -1,0 +1,58 @@
+name: Maven Cache
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest                         //Maven will comes with Github Hosted Runners
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven                             //No need to install maven it installs java17 & set home path, cache dependencies in /home/.m2 repository
+
+      - run: mvn clean package
+
+//npm  cache
+- uses: actions/setup-node@v4
+  with:
+    node-version: 22
+    cache: npm
+
+- run: npm ci
+
+//Gradle cache
+- uses: actions/setup-java@v4
+  with:
+    distribution: temurin
+    java-version: 21
+    cache: gradle
+
+//Python cache
+- uses: actions/setup-python@v5
+  with:
+    python-version: "3.12"
+    cache: pip
+
+- run: pip install -r requirements.txt
+
+
+
+
+
+//Using actions/cache
+
+For directories that aren't automatically supported, use actions/cache.
+
+- name: Cache Maven Repository
+  uses: actions/cache@v4
+  with:
+    path: ~/.m2/repository
+    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    restore-keys: |
+      ${{ runner.os }}-maven-
