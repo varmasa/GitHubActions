@@ -1,9 +1,9 @@
 name: First Workflow
 on: push
-jobs:
+jobs:                        //Jobs will run parallel until we specify dependency
   sample:
     runs-on: ubuntu-latest
-    steps:
+    steps:                   //Steps will run sequentially
       - name: sample step
         run: echo "Hello From GitHub-Actions"
 
