@@ -1,0 +1,98 @@
+S1:  IAM -> Identity Provider -> Add Provider
+
+OpenIDConnect
+URL: https://token.actions.githubusercontent.com
+Audience: sts.amazonaws.com
+
+S2: Create an IAM Role with below
+Policy:
+  {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:YOUR_GITHUB_USERNAME/YOUR_REPOSITORY:*"
+        }
+      }
+    }
+  ]
+  }
+
+
+permissions:
+  id-token: write
+  contents: read
+
+
+S4: Github Workflow
+- name: Configure AWS Credentials
+  uses: aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/GitHubActionsRole
+    aws-region: us-east-1
+
+
+S5:
+
+GitHub
+      │
+Creates OIDC Token
+      │
+      ▼
+AWS STS (If valid)
+      │
+Issues Temporary Credentials
+
+
+
+S6: Testing
+  - run: aws s3 ls
+  - run: aws eks update-kubeconfig --region us-east-1 --name mycluster
+
+
+
+OIDC Architeture:
+
+GitHub Actions
+       │
+       ▼
+GitHub OIDC Token
+       │
+       ▼
+AWS STS
+       │
+Temporary Credentials
+       │
+       ▼
+AWS Services
+
+
+
+
+| Access Keys                   | OIDC                         |
+| ----------------------------- | ---------------------------- |
+| Long-lived credentials        | Temporary credentials        |
+| Keys stored as GitHub Secrets | No AWS keys stored in GitHub |
+| Manual key rotation           | No key rotation required     |
+| Easier to set up              | More initial configuration   |
+| Good for labs/small projects  | Recommended for production   |
+
+
+
+How does GitHub Actions connect to AWS using OIDC?
+
+  Configure GitHub as an OIDC identity provider in AWS IAM.
+  Create an IAM role with a trust policy allowing your GitHub repository to assume it.
+  Grant that role only the permissions required.
+  In the workflow, grant id-token: write and use aws-actions/configure-aws-credentials.
+  GitHub requests an OIDC token, AWS STS validates it, and STS returns temporary credentials.
+  The workflow uses those temporary credentials to access AWS services such as S3, ECR, or EKS.
