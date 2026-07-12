@@ -1,0 +1,40 @@
+name: AWS OIDC Demo
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  aws_access:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::876163988748:role/GitHubActionsRole
+          aws-region: ap-south-1
+
+      - name: Verify Identity
+        run: aws sts get-caller-identity
+
+      - name: List S3 Buckets
+        run: aws s3 ls
+
+      - name: List EC2 Instances
+        run: aws ec2 describe-instances
+
+      - name: List EKS Clusters
+        run: aws eks list-clusters
