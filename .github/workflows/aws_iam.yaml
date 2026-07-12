@@ -5,6 +5,17 @@ with:
    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
    aws-region: ap-south-1
 
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
 jobs:
   AWS_Access:
     runs_on: ubuntu-latest
