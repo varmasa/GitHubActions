@@ -1,9 +1,4 @@
-name: Configure AWS Credentials
-uses: aws-actions/configure-aws-credentials@v4
-with:
-   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-   aws-region: ap-south-1
+name: AWS Access
 
 on:
   push:
@@ -17,15 +12,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  AWS_Access:
-    runs_on: ubuntu-latest
+  aws_access:
+
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Access AWS S3
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Verify AWS Login
+        run: aws sts get-caller-identity
+
+      - name: List S3 Buckets
         run: aws s3 ls
 
-      - name: Access AWS EC2
+      - name: List EC2 Instances
         run: aws ec2 describe-instances
 
-      - name: Access AWS EKS
+      - name: List EKS Clusters
         run: aws eks list-clusters
