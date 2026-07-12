@@ -62,20 +62,47 @@ S6: Testing
 
 OIDC Architeture:
 
-GitHub Actions
-       │
-       ▼
-GitHub OIDC Token
-       │
-       ▼
-AWS STS
-       │
-Temporary Credentials
-       │
-       ▼
-AWS Services
+1. GitHub Actions starts
+        │
+        ▼
+2. GitHub generates an OIDC token
+        │
+        ▼
+3. Token is sent to AWS STS
+        │
+        ▼
+4. STS checks:
+      ✓ Is the token valid?
+      ✓ Is the audience sts.amazonaws.com?
+      ✓ Does the repository match the IAM role trust policy?
+        │
+        ▼
+5. STS assumes the IAM role
+        │
+        ▼
+6. STS returns temporary AWS credentials
+        │
+        ▼
+7. GitHub Actions uses those credentials
+        │
+        ▼
+8. Access S3, EKS, EC2, ECR, etc.
 
+STS (Security Token Service): It returns below things
+  AccessKeyId
+  SecretAccessKey
+  SessionToken
+  Expiration Time
 
+aws sts get-caller-identity (It verifies who the workflow is authenticated as.)
+
+o/p:
+{
+  "UserId": "AROAXXXXXXXXXXXXX",
+  "Account": "123456789012",
+  "Arn": "arn:aws:sts::123456789012:assumed-role/GitHubActionsRole/GitHubActions"
+}
+    
 
 
 | Access Keys                   | OIDC                         |
@@ -96,3 +123,12 @@ How does GitHub Actions connect to AWS using OIDC?
   In the workflow, grant id-token: write and use aws-actions/configure-aws-credentials.
   GitHub requests an OIDC token, AWS STS validates it, and STS returns temporary credentials.
   The workflow uses those temporary credentials to access AWS services such as S3, ECR, or EKS.
+
+
+What is AWS STS?
+
+AWS Security Token Service (STS) is a service that provides temporary security credentials to access AWS resources. It enables users, applications, or external identity providers to assume IAM roles instead of using long-lived access keys.
+
+What is STS's role in GitHub OIDC?
+
+GitHub Actions obtains an OIDC token and sends it to AWS STS. STS validates the token against the IAM role's trust policy. If validation succeeds, STS issues temporary AWS credentials, which the workflow uses to access AWS services. This eliminates the need to store permanent AWS access keys in GitHub Secrets.
